@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VEQSA UIFI – Live Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f9fcff;
+      --text: #333;
+      --card: #ffffff;
+      --highlight: #006d77;
+      --accent: #e76f51;
+    }
+    [data-theme="dark"] {
+      --bg: #1e1e1e;
+      --text: #ddd;
+      --card: #2c2c2c;
+      --highlight: #00b4a2;
+      --accent: #ffb703;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+    .header {
+      background-color: var(--highlight);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .logo { font-size: 1.4rem; font-weight: bold; }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    select, .theme-toggle {
+      font-size: 1rem;
+      padding: 0.4rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      padding: 1rem;
+      background: var(--card);
+      border-radius: 8px;
+      margin: 1rem 2rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .summary-box { text-align: center; padding: 0.5rem; }
+    .summary-box strong {
+      display: block;
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+      padding: 1rem 2rem;
+    }
+    .main-panels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    .panel {
+      background-color: var(--card);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      padding: 1rem;
+      transition: all 0.3s ease;
+    }
+    .panel h3 { margin-top: 0; }
+    canvas {
+      width: 100% !important;
+      height: 240px !important;
+    }
+    .alerts {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .alert {
+      background: #fff3f3;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      border-left: 4px solid red;
+    }
+    [data-theme="dark"] .alert { background: #442626; }
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .matrix-column {
+      background: var(--card);
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+    .matrix-column h4 {
+      text-align: center;
+    }
+    .task {
+      background: #f1f1f1;
+      margin: 0.4rem 0;
+      padding: 0.5rem;
+      border-left: 5px solid #888;
+      font-size: 0.9rem;
+      animation: fadeIn 0.6s ease;
+    }
+    [data-theme="dark"] .task { background: #444; }
+    .sidebar-info {
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      background: var(--card);
+      border-left: 4px solid var(--highlight);
+      padding: 0.8rem;
+      border-radius: 4px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">VEQSA UIFI – Live Multi-Scenario Dashboard</div>
+    <div class="controls">
+      <select id="scenarioSelect">
+        <option value="healthcare"> Healthcare</option>
+        <option value="industrial"> Industrial</option>
+        <option value="military"> Military</option>
+        <option value="financial"> Financial</option>
+        <option value="smartcity"> Smart City</option>
+        <option value="space"> Space Ops</option>
+      </select>
+      <button class="theme-toggle" onclick="toggleTheme()">🌗 Theme</button>
+    </div>
+  </header>
+
+  <div class="summary" id="summaryStats">
+    <div class="summary-box">
+      <strong id="kpi1">--</strong>
+      <span>Primary KPI</span>
+    </div>
+    <div class="summary-box">
+      <strong id="kpi2">--</strong>
+      <span>Risk Index</span>
+    </div>
+    <div class="summary-box">
+      <strong id="kpi3">--</strong>
+      <span>Active Tasks</span>
+    </div>
+  </div>
+
+  <div class="dashboard">
+    <div class="main-panels">
+      <div class="panel">
+        <h3 id="chartTitle">Vitals</h3>
+        <canvas id="mainChart"></canvas>
+      </div>
+
+      <div class="panel">
+        <h3>HOI Priority Matrix</h3>
+        <div class="matrix" id="matrixContainer"></div>
+      </div>
+
+      <div class="panel">
+        <h3>RTAO – Adaptive Recommendations</h3>
+        <div id="rtaoPanel">
+          <div class="task">🧠 Loading recommendations...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel alerts">
+      <h3>📡 Live Alerts</h3>
+      <div id="alertStream"></div>
+      <div class="sidebar-info" id="insightPanel">System insights loading...</div>
+    </div>
+  </div>
+<script>
+// 🧠 Core Variables
+let chartInstance;
+const chartCtx = document.getElementById("mainChart").getContext("2d");
+const kpi1 = document.getElementById("kpi1");
+const kpi2 = document.getElementById("kpi2");
+const kpi3 = document.getElementById("kpi3");
+const alertStream = document.getElementById("alertStream");
+const insightPanel = document.getElementById("insightPanel");
+const matrixContainer = document.getElementById("matrixContainer");
+const rtaoPanel = document.getElementById("rtaoPanel");
+
+let activeScenario = "healthcare";
+
+// 🔁 Utility for Simulated Data
+function randLine(len, min, max) {
+  return Array.from({ length: len }, () => Math.floor(Math.random() * (max - min + 1)) + min);
+}
+
+// 🌗 Theme Toggle
+function toggleTheme() {
+  const html = document.documentElement;
+  html.setAttribute("data-theme", html.getAttribute("data-theme") === "dark" ? "light" : "dark");
+}
+
+// ⚠️ Alert Stream Handler
+function streamAlert(text) {
+  const el = document.createElement("div");
+  el.className = "alert";
+  el.textContent = `⚠️ ${text} — ${new Date().toLocaleTimeString()}`;
+  alertStream.prepend(el);
+  if (alertStream.childNodes.length > 6) alertStream.removeChild(alertStream.lastChild);
+}
+
+// 🔄 Scenario Loader
+function loadScenario(key) {
+  activeScenario = key;
+  const s = scenarios[key];
+  document.getElementById("chartTitle").innerText = s.chartTitle;
+
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(chartCtx, {
+    type: s.chartType || "line",
+    data: s.chartData(),
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  [kpi1.innerText, kpi2.innerText, kpi3.innerText] = s.kpis;
+  insightPanel.innerText = s.insight;
+
+  alertStream.innerHTML = "";
+  s.alerts.forEach(a => streamAlert(a));
+
+  matrixContainer.innerHTML = "";
+  Object.entries(s.matrix).forEach(([level, tasks]) => {
+    const col = document.createElement("div");
+    col.className = "matrix-column";
+    col.innerHTML = `<h4>${level}</h4>` + tasks.map(t => `<div class="task">${t}</div>`).join("");
+    matrixContainer.appendChild(col);
+  });
+
+  rtaoPanel.innerHTML = "";
+  s.rtao.forEach(r => {
+    const box = document.createElement("div");
+    box.className = "task";
+    box.innerHTML = `🧠 ${r.msg}<br><small>Confidence: ${r.confidence}%</small>`;
+    rtaoPanel.appendChild(box);
+  });
+}
+
+// 🔁 Auto Simulator Loop
+function simulate() {
+  const s = scenarios[activeScenario];
+  if (!s) return;
+
+  chartInstance.data = s.chartData();
+  chartInstance.update();
+
+  const alert = s.alerts[Math.floor(Math.random() * s.alerts.length)];
+  streamAlert(alert);
+
+  const newReco = {
+    msg: s.rtao[Math.floor(Math.random() * s.rtao.length)].msg + " (refined)",
+    confidence: Math.floor(Math.random() * 15 + 80)
+  };
+  s.rtao.unshift(newReco);
+  s.rtao = s.rtao.slice(0, 3);
+  loadScenario(activeScenario);
+}
+
+// 🔌 Bindings
+document.getElementById("scenarioSelect").addEventListener("change", e => {
+  loadScenario(e.target.value);
+});
+
+window.onload = () => {
+  loadScenario("healthcare");
+  setInterval(simulate, 6000);
+};
+
+// 🔢 Scenario Definitions (all 6 sectors)
+const scenarios = {
+  healthcare: {
+    chartTitle: "Patient Vitals",
+    kpis: ["98.6°F", "87", "6"],
+    insight: "System predicts ICU overcapacity by 2:45PM. Preemptive rerouting triggered.",
+    alerts: ["🧪 Lab queue exceeds threshold", "🏥 ICU capacity at 92%", "🩺 Tachycardia flagged in Ward 2B"],
+    matrix: {
+      High: ["Assign ICU bed", "Escalate trauma response"],
+      Medium: ["Flag CT scan delay", "Verify insurance override"],
+      Low: ["Prep discharge – 2 patients", "Review PT schedule"]
+    },
+    rtao: [
+      { msg: "Activate backup radiology path", confidence: 88 },
+      { msg: "Extend staffing window by 45 min", confidence: 82 },
+      { msg: "Reroute telemetry to Ward B", confidence: 79 }
+    ],
+    chartData: () => ({
+      labels: ["8AM", "9AM", "10AM", "11AM"],
+      datasets: [
+        { label: "Heart Rate", data: randLine(4, 82, 96), borderColor: "#e63946", fill: false },
+        { label: "O₂ Saturation", data: randLine(4, 95, 99), borderColor: "#1d3557", fill: false }
+      ]
+    })
+  },
+
+  industrial: {
+    chartTitle: "Sensor Uptime – Line A & B",
+    kpis: ["97.4%", "68", "4"],
+    insight: "Line B RPM fluctuation detected. Predictive maintenance initialized.",
+    alerts: ["⚙️ Press 3: Vibration threshold exceeded", "🧯 Filter sensor flagged", "📉 Coolant pressure dip – Line B"],
+    matrix: {
+      High: ["Shutdown Line C", "Order filter replacement"],
+      Medium: ["Check lubrication timing", "Test temp sensors"],
+      Low: ["Clean floor grid", "Routine log – Conveyor 7"]
+    },
+    rtao: [
+      { msg: "Schedule maintenance – Line B", confidence: 91 },
+      { msg: "Calibrate torque sensors", confidence: 86 },
+      { msg: "Preempt filter flush cycle", confidence: 79 }
+    ],
+    chartData: () => ({
+      labels: ["Mon", "Tue", "Wed", "Thu"],
+      datasets: [
+        { label: "Line A", data: randLine(4, 95, 99), borderColor: "#2a9d8f", fill: false },
+        { label: "Line B", data: randLine(4, 88, 94), borderColor: "#264653", fill: false }
+      ]
+    })
+  },
+
+  military: {
+    chartTitle: "Mission Readiness Score",
+    kpis: ["88%", "74", "5"],
+    insight: "Comm anomaly with Scout C resolved. Command link reestablished.",
+    alerts: ["🛰️ GPS drift – Unit Bravo", "🔕 Comm node Alpha blackout", "📡 RF interference – ridge zone"],
+    matrix: {
+      High: ["Deploy recon drone", "Reinforce perimeter"],
+      Medium: ["Calibrate comms", "Reload tactical firmware"],
+      Low: ["Ops team briefing", "Sync time server"]
+    },
+    rtao: [
+      { msg: "Reacquire orbital sync", confidence: 89 },
+      { msg: "Deploy relay beacon", confidence: 84 },
+      { msg: "Throttle RF usage node 4B", confidence: 77 }
+    ],
+    chartData: () => ({
+      labels: ["Alpha", "Bravo", "Charlie", "Delta"],
+      datasets: [
+        { label: "Readiness", data: randLine(4, 75, 95), backgroundColor: "#f77f00" }
+      ]
+    }),
+    chartType: "bar"
+  },
+
+  financial: {
+    chartTitle: "Market Volatility – Live Index Feed",
+    kpis: ["21.4", "64", "3"],
+    insight: "Volatility spike near 10:40AM triggered auto-adjust protocol.",
+    alerts: [
+      "📉 Dow drops 1.8%",
+      "🚨 Crypto fluctuation exceeds 5%",
+      "🔐 Unusual trading pattern: Algo #12"
+    ],
+    matrix: {
+      High: ["Freeze high-risk asset class", "Flag hedge conflict"],
+      Medium: ["Notify risk officer", "Review options desk flow"],
+      Low: ["Balance exposure sheet", "Update internal forecast"]
+    },
+    rtao: [
+      { msg: "Auto-hedge emerging risk zone", confidence: 91 },
+      { msg: "Alert compliance on trade velocity", confidence: 83 },
+      { msg: "Shift holdings to safe harbor fund", confidence: 78 }
+    ],
+    chartData: () => ({
+      labels: ["9:00", "10:00", "11:00", "12:00"],
+      datasets: [
+        { label: "VIX Index", data: randLine(4, 18, 28), borderColor: "#6a0572", fill: false }
+      ]
+    })
+  },
+
+  smartcity: {
+    chartTitle: "Live Energy Load by Zone",
+    kpis: ["232 MW", "59", "7"],
+    insight: "Zone 3 trending 8% over historical max. Grid reroute underway.",
+    alerts: [
+      "⚡ Power surge – Zone 3",
+      "🚦 Traffic density – Level Red",
+      "🚰 Water pump offline – Block 19"
+    ],
+    matrix: {
+      High: ["Route alternate grid feed", "Auto-alert FD for tower 8"],
+      Medium: ["Notify transit command", "Reboot water system relay"],
+      Low: ["Schedule drone bin sweep", "Streetlight cluster offline"]
+    },
+    rtao: [
+      { msg: "Pre-load energy grid to Zone 2", confidence: 88 },
+      { msg: "Dispatch autonomous crew to sensor 29B", confidence: 81 },
+      { msg: "Optimize route map – green corridor", confidence: 75 }
+    ],
+    chartData: () => ({
+      labels: ["Z1", "Z2", "Z3", "Z4"],
+      datasets: [
+        { label: "Energy Load", data: randLine(4, 180, 260), backgroundColor: "#06d6a0" }
+      ]
+    }),
+    chartType: "bar"
+  },
+
+  space: {
+    chartTitle: "Orbital Signal Stability – Sat A-D",
+    kpis: ["93%", "61", "2"],
+    insight: "Sat B telemetry drop at 13:40. Auto-link recovery protocol active.",
+    alerts: [
+      "📡 Signal delay – Sat C",
+      "☄️ Radiation spike – flare watch",
+      "🛰️ Thruster glitch – Sat A"
+    ],
+    matrix: {
+      High: ["Reacquire signal lock", "Engage backup comm array"],
+      Medium: ["Monitor solar event probability", "Pulse diagnostic"],
+      Low: ["Sync with Earth relay", "Queue nav software update"]
+    },
+    rtao: [
+      { msg: "Switch to backup transponder – Sat B", confidence: 90 },
+      { msg: "Slow spin rotation vector", confidence: 84 },
+      { msg: "Pre-drift calibration sweep", confidence: 77 }
+    ],
+    chartData: () => ({
+      labels: ["Sat A", "Sat B", "Sat C", "Sat D"],
+      datasets: [
+        { label: "Signal (%)", data: randLine(4, 80, 98), borderColor: "#118ab2", fill: false }
+      ]
+    })
+  }
+};
+</script>
+</body>
+</html>
