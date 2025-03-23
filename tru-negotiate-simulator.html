@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TruNegotiate Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f9fcff;
+      --text: #333;
+      --card: #ffffff;
+      --highlight: #006d77;
+      --accent: #e76f51;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1e1e1e;
+      --text: #ddd;
+      --card: #2c2c2c;
+      --highlight: #00b4a2;
+      --accent: #ffb703;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .header {
+      background-color: var(--highlight);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    select, .theme-toggle {
+      font-size: 1rem;
+      padding: 0.4rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      padding: 1rem;
+      background: var(--card);
+      border-radius: 8px;
+      margin: 1rem 2rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .summary-box {
+      text-align: center;
+      padding: 0.5rem;
+    }
+
+    .summary-box strong {
+      display: block;
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+      padding: 1rem 2rem;
+    }
+
+    .main-panels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .panel {
+      background-color: var(--card);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      padding: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .panel h3 { margin-top: 0; }
+
+    canvas {
+      width: 100% !important;
+      height: 240px !important;
+    }
+
+    .alerts {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .alert {
+      background: #fff3f3;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      border-left: 4px solid red;
+    }
+
+    [data-theme="dark"] .alert { background: #442626; }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    .matrix-column {
+      background: var(--card);
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+
+    .matrix-column h4 {
+      text-align: center;
+    }
+
+    .task {
+      background: #f1f1f1;
+      margin: 0.4rem 0;
+      padding: 0.5rem;
+      border-left: 5px solid #888;
+      font-size: 0.9rem;
+      animation: fadeIn 0.6s ease;
+    }
+
+    [data-theme="dark"] .task { background: #444; }
+
+    .sidebar-info {
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      background: var(--card);
+      border-left: 4px solid var(--highlight);
+      padding: 0.8rem;
+      border-radius: 4px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">TruNegotiate – Live AI Scheduling Demo</div>
+    <div class="controls">
+      <select id="scenarioSelect">
+        <option value="consumer">👨‍👩‍👧 Consumer</option>
+        <option value="enterprise">🏢 Enterprise</option>
+        <option value="multiparty">🧑‍💼 Multi-Party</option>
+      </select>
+      <button class="theme-toggle" onclick="toggleTheme()">🌗 Theme</button>
+    </div>
+  </header>
+
+  <div class="summary" id="summaryStats">
+    <div class="summary-box">
+      <strong id="kpi1">--</strong>
+      <span>Efficiency</span>
+    </div>
+    <div class="summary-box">
+      <strong id="kpi2">--</strong>
+      <span>Conflicts Resolved</span>
+    </div>
+    <div class="summary-box">
+      <strong id="kpi3">--</strong>
+      <span>Pending Tasks</span>
+    </div>
+  </div>
+
+  <div class="dashboard">
+    <div class="main-panels">
+      <div class="panel">
+        <h3 id="chartTitle">Schedule Overview</h3>
+        <canvas id="mainChart"></canvas>
+      </div>
+
+      <div class="panel">
+        <h3>HOI Priority Matrix</h3>
+        <div class="matrix" id="matrixContainer"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Digital Twin Negotiation Panel</h3>
+        <div id="rtaoPanel">
+          <div class="task">🧠 Awaiting AI-driven proposals...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel alerts">
+      <h3>📡 Live Alerts</h3>
+      <div id="alertStream"></div>
+      <div class="sidebar-info" id="insightPanel">System insights loading...</div>
+    </div>
+  </div>
+<script>
+let chartInstance;
+const chartCtx = document.getElementById("mainChart").getContext("2d");
+const kpi1 = document.getElementById("kpi1");
+const kpi2 = document.getElementById("kpi2");
+const kpi3 = document.getElementById("kpi3");
+const alertStream = document.getElementById("alertStream");
+const insightPanel = document.getElementById("insightPanel");
+const matrixContainer = document.getElementById("matrixContainer");
+const rtaoPanel = document.getElementById("rtaoPanel");
+
+let activeScenario = "consumer";
+
+const scenarios = {
+  consumer: {
+    chartTitle: "Daily Calendar Conflicts",
+    kpis: ["92%", "3", "2"],
+    insight: "Dinner schedule optimized. Minor overlap detected with chore time.",
+    alerts: [
+      "🛑 Conflict: Movie Night vs Dinner – 6:00 PM",
+      "✅ New slot suggested: 7:30 PM",
+      "📅 Adjustment applied by Twin B"
+    ],
+    matrix: {
+      High: ["Confirm new dinner slot", "Notify family group"],
+      Medium: ["Update reminder: Grocery run"],
+      Low: ["Review next week’s calendar"]
+    },
+    rtao: [
+      { msg: "Shift dinner to 7:30PM to avoid conflict", confidence: 94 },
+      { msg: "Sync event with shared calendar", confidence: 87 },
+      { msg: "Apply preferred meal time logic", confidence: 83 }
+    ],
+    chartData: () => ({
+      labels: ["Mon", "Tue", "Wed", "Thu"],
+      datasets: [{
+        label: "Resolved Conflicts",
+        data: randLine(4, 1, 5),
+        backgroundColor: "#00b4d8"
+      }]
+    }),
+    chartType: "bar"
+  },
+
+  enterprise: {
+    chartTitle: "Team Conflict Resolution Metrics",
+    kpis: ["87%", "5", "4"],
+    insight: "Global sync meeting resolved with adjusted time for Asia-based participants.",
+    alerts: [
+      "🌐 Overlap: Ops vs R&D – 2:00 PM",
+      "✅ Resolution: 2:45 PM slot agreed",
+      "📩 Meeting invite updated by Twin A"
+    ],
+    matrix: {
+      High: ["Finalize board sync", "Resolve Asia timezone conflict"],
+      Medium: ["Align with PMO availability"],
+      Low: ["Review team objectives"]
+    },
+    rtao: [
+      { msg: "Delay meeting by 45 mins for optimal overlap", confidence: 91 },
+      { msg: "Auto-align shared time zones", confidence: 85 },
+      { msg: "Assign digital twin follow-up", confidence: 81 }
+    ],
+    chartData: () => ({
+      labels: ["Team A", "B", "C", "D"],
+      datasets: [{
+        label: "Meetings Optimized",
+        data: randLine(4, 3, 9),
+        backgroundColor: "#8338ec"
+      }]
+    }),
+    chartType: "bar"
+  },
+
+  multiparty: {
+    chartTitle: "Cross-Dept Conflict Heatmap",
+    kpis: ["79%", "8", "6"],
+    insight: "Sales vs Ops vs R&D achieved optimal overlap through 3rd-tier resolution path.",
+    alerts: [
+      "🔥 Triple Conflict: 3 overlapping department goals",
+      "🧠 Twin C proposed neutral 1:30 PM slot",
+      "✅ Finalized: 1:30PM slot accepted by all twins"
+    ],
+    matrix: {
+      High: ["Confirm project kickoff", "Escalate pending R&D task"],
+      Medium: ["Align team milestones"],
+      Low: ["Reschedule QBR prep"]
+    },
+    rtao: [
+      { msg: "Propose 1:30 PM slot with 75% overlap confidence", confidence: 89 },
+      { msg: "Negotiate department lead preferences", confidence: 82 },
+      { msg: "Resolve via round-robin fallback", confidence: 78 }
+    ],
+    chartData: () => ({
+      labels: ["Sales", "Ops", "R&D", "Exec"],
+      datasets: [{
+        label: "Negotiation Rounds",
+        data: randLine(4, 2, 6),
+        backgroundColor: "#ff006e"
+      }]
+    }),
+    chartType: "bar"
+  }
+};
+
+function randLine(len, min, max) {
+  return Array.from({ length: len }, () =>
+    Math.floor(Math.random() * (max - min + 1)) + min
+  );
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  html.setAttribute("data-theme", html.getAttribute("data-theme") === "dark" ? "light" : "dark");
+}
+
+function streamAlert(text) {
+  const el = document.createElement("div");
+  el.className = "alert";
+  el.textContent = `⚠️ ${text} — ${new Date().toLocaleTimeString()}`;
+  alertStream.prepend(el);
+  if (alertStream.childNodes.length > 6) alertStream.removeChild(alertStream.lastChild);
+}
+
+function loadScenario(key) {
+  activeScenario = key;
+  const s = scenarios[key];
+
+  document.getElementById("chartTitle").innerText = s.chartTitle;
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(chartCtx, {
+    type: s.chartType || "bar",
+    data: s.chartData(),
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  [kpi1.innerText, kpi2.innerText, kpi3.innerText] = s.kpis;
+  insightPanel.innerText = s.insight;
+  alertStream.innerHTML = "";
+  s.alerts.forEach(a => streamAlert(a));
+
+  matrixContainer.innerHTML = "";
+  Object.entries(s.matrix).forEach(([level, tasks]) => {
+    const col = document.createElement("div");
+    col.className = "matrix-column";
+    col.innerHTML = `<h4>${level}</h4>` + tasks.map(t => `<div class="task">${t}</div>`).join("");
+    matrixContainer.appendChild(col);
+  });
+
+  rtaoPanel.innerHTML = "";
+  s.rtao.forEach(r => {
+    const box = document.createElement("div");
+    box.className = "task";
+    box.innerHTML = `🤖 ${r.msg}<br><small>Confidence: ${r.confidence}%</small>`;
+    rtaoPanel.appendChild(box);
+  });
+}
+
+function simulate() {
+  const s = scenarios[activeScenario];
+  if (!s) return;
+
+  if (chartInstance) {
+    chartInstance.data = s.chartData();
+    chartInstance.update();
+  }
+
+  const alert = s.alerts[Math.floor(Math.random() * s.alerts.length)];
+  streamAlert(alert);
+
+  const newReco = {
+    msg: s.rtao[Math.floor(Math.random() * s.rtao.length)].msg + " (refined)",
+    confidence: Math.floor(Math.random() * 15 + 80)
+  };
+  s.rtao.unshift(newReco);
+  s.rtao = s.rtao.slice(0, 3);
+  loadScenario(activeScenario);
+}
+
+document.getElementById("scenarioSelect").addEventListener("change", e => {
+  loadScenario(e.target.value);
+});
+
+window.onload = () => {
+  loadScenario("consumer");
+  setInterval(simulate, 7000);
+};
+</script>
+</body>
+</html>
