@@ -1,10 +1,18 @@
-#NOTICE
+MIT License (with Custom Restrictions)
 
-This repository is for **demonstration purposes only**.
+Copyright (c) 2025 VEQSA
 
-VEQSA’s Optimization Intelligence™ (OI) system is **patent-protected** and contains proprietary concepts.  
-This code represents only a front-end simulation. The actual intelligence, logic, and optimization engine are secured privately.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use the Software
+for **non-commercial, demonstrational, or educational** purposes only — subject to the following conditions:
 
-**All Rights Reserved** — This code may not be used, copied, modified, or redistributed without explicit written permission from VEQSA.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. UNDER NO CIRCUMSTANCES MAY THIS CODE:
+- Be used to build commercial products or services;
+- Be reverse engineered to extract user interface patterns, design logic, or simulated intelligence;
+- Be copied or replicated in any form without prior written permission from VEQSA;
 
-Learn more at [veqsa.com](https://veqsa.com)
+Any attempts to reuse or misrepresent the VEQSA OI framework, trademarks, or brand may result in legal action.
+
+---
+
+For commercial licensing or proprietary access, please contact: investors@veqsa.com
