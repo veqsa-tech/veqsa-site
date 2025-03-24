@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOI | Human Optimization Intelligence™ – VEQSA</title>
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --text: #222;
+      --card: #fff;
+      --accent: #0077cc;
+      --muted: #666;
+    }
+    [data-theme="dark"] {
+      --bg: #1e1e1e;
+      --text: #eee;
+      --card: #2a2a2a;
+      --accent: #00c0ff;
+      --muted: #aaa;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 80px;
+    }
+    header {
+      background: #001f3f;
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.8em;
+      margin-bottom: 10px;
+    }
+    header p {
+      font-size: 1.3em;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    main {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    section {
+      margin-bottom: 40px;
+    }
+    h2 {
+      color: var(--accent);
+      margin-bottom: 10px;
+      font-size: 2em;
+    }
+    p, li {
+      font-size: 1.1em;
+      margin-bottom: 10px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .panel {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin-top: 20px;
+    }
+    .grid > div {
+      flex: 1 1 300px;
+    }
+    .narrator-box {
+      font-style: italic;
+      background: #fff8dc;
+      color: #444;
+      padding: 10px;
+      border-left: 4px solid #f0c000;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    [data-theme="dark"] .narrator-box {
+      background: #3a3a2a;
+      color: #eee;
+    }
+    footer {
+      text-align: center;
+      background: #001f3f;
+      color: white;
+      padding: 20px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 2.2em; }
+      .grid { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Human Optimization Intelligence™ (HOI)</h1>
+    <p>Adaptive AI for Human Performance — Powering VEQSA’s Health & Enterprise Intelligence Ecosystem</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>What is HOI?</h2>
+      <p>VEQSA’s Human Optimization Intelligence™ (HOI) is a revolutionary AI framework designed to elevate human decision-making and performance. By seamlessly integrating real-time biometric and emotional data, HOI empowers users with actionable insights—enabling faster, more optimal decisions in dynamic environments.</p>
+      <button onclick="document.getElementById('sim-panel').style.display='block'">▶️ Start Guided Simulation</button>
+    </section>
+
+    <div id="sim-panel" style="display:none;">
+      <section class="panel">
+        <h2>🧠 Live HOI Optimization Panel</h2>
+
+        <div class="grid">
+          <div>
+            <h3>Vitals</h3>
+            <p><strong>Blood Pressure:</strong> <span id="bp">--</span></p>
+            <p><strong>Hydration:</strong> <span id="hydration">--</span>%</p>
+            <p><strong>Energy Level:</strong> <span id="energy">--</span>/10</p>
+          </div>
+
+          <div>
+            <h3>HOI Recommendations</h3>
+            <ul id="recommendations">
+              <li>Loading...</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3>System Insight</h3>
+            <p id="insight">Initializing...</p>
+          </div>
+        </div>
+
+        <div class="narrator-box" id="narrator1"></div>
+        <div class="narrator-box" id="narrator2"></div>
+        <div class="narrator-box" id="narrator3"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 VEQSA. All rights reserved.</p>
+  </footer>
+
+  <!-- Simulation Script -->
+  <script>
+    const bpEl = document.getElementById('bp');
+    const hydrationEl = document.getElementById('hydration');
+    const energyEl = document.getElementById('energy');
+    const recommendations = document.getElementById('recommendations');
+    const insight = document.getElementById('insight');
+
+    const narrator1 = document.getElementById('narrator1');
+    const narrator2 = document.getElementById('narrator2');
+    const narrator3 = document.getElementById('narrator3');
+
+    const bpValues = ["118/76", "122/80", "130/85", "115/72"];
+    const hydrationValues = [72, 78, 80, 65];
+    const energyLevels = [6, 7, 8, 5];
+
+    const recos = [
+      "Increase potassium intake to support vascular balance.",
+      "Schedule light exercise to improve circulation.",
+      "Drink 12 oz of spring water within the next 30 minutes.",
+      "Reduce screen time by 1 hour tonight to improve recovery.",
+      "Try 5-minute guided breathwork to lower stress levels."
+    ];
+
+    const insights = [
+      "HOI detected elevated stress markers after 2 PM meetings.",
+      "User hydration dropped 12% during travel windows.",
+      "BP spike correlated with low sleep + caffeine combo.",
+      "Energy levels dip regularly after high-conflict meetings."
+    ];
+
+    function updateSimulation() {
+      const i = Math.floor(Math.random() * bpValues.length);
+      bpEl.textContent = bpValues[i];
+      hydrationEl.textContent = hydrationValues[i];
+      energyEl.textContent = energyLevels[i];
+
+      const sampleRecos = [...recos].sort(() => 0.5 - Math.random()).slice(0, 3);
+      recommendations.innerHTML = sampleRecos.map(r => `<li>${r}</li>`).join("");
+
+      const randInsight = insights[Math.floor(Math.random() * insights.length)];
+      insight.textContent = randInsight;
+
+      narrator1.textContent = "HOI is analyzing biometric and behavior data for optimization...";
+      narrator2.textContent = "Prediction: Stress likely to peak at 3:00 PM due to overlap in priorities.";
+      narrator3.textContent = "Recommendation confidence: 94% — real-time strategy deployed.";
+    }
+
+    setInterval(updateSimulation, 10000); // Every 10s
+    updateSimulation(); // Initial load
+  </script>
+</body>
+</html>
