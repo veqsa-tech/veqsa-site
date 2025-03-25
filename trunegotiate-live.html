@@ -157,4 +157,90 @@
     }
   </script>
 </body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TruNegotiate Simulation</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    h2 {
+      color: #001f3f;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .message {
+      background: #e7f5ff;
+      padding: 12px;
+      border-left: 4px solid #00c0ff;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    .conflict {
+      background: #ffecec;
+      border-left-color: #ff4136;
+    }
+
+    .narrator {
+      background: #fef6dd;
+      border-left: 4px solid #f0c000;
+      font-style: italic;
+      color: #555;
+    }
+
+    .summary-box p {
+      font-size: 1.05em;
+      margin: 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card">
+      <h2>Live Schedule View</h2>
+      <div class="message">9:00 AM - Yoga</div>
+      <div class="message">11:30 AM - Grocery Run</div>
+      <div class="message conflict">6:00 PM - Conflict: Dinner vs. Movie Night</div>
+      <div class="message">8:00 PM - Project Time</div>
+      <div class="message narrator">Twin A detected overlap, initiating negotiation.</div>
+    </div>
+
+    <div class="card">
+      <h2>Twin Negotiation Flow</h2>
+      <div class="message">Twin A: Proposed dinner at 7:30 PM</div>
+      <div class="message">Twin B: Accepted. Updating family calendar.</div>
+      <div class="message">Twin A: Confirmed. Conflict resolved.</div>
+      <div class="message narrator">Resolved in 4.3 seconds. Confidence: 96%.</div>
+    </div>
+
+    <div class="card summary-box">
+      <h2>Twin Performance Summary</h2>
+      <p><strong>Conflicts Resolved:</strong> 1</p>
+      <p><strong>Average Resolution Time:</strong> 4.3 seconds</p>
+      <p><strong>Success Rate:</strong> 96%</p>
+    </div>
+  </main>
+</body>
 </html>
